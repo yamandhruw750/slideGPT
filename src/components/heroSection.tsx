@@ -9,7 +9,7 @@ export default function Header() {
   const handleStartCreating = async () => {
     const session = await authClient.getSession()
     if (session.data?.user) {
-      navigate({ to: '/' })
+      navigate({ to: '/dashboard' })
     } else {
       navigate({ to: '/login' })
     }
