@@ -7,11 +7,38 @@ import {
   WandSparkles,
 } from 'lucide-react'
 import { Button } from './ui/button'
+import {
+  SLIDE_STYLES,
+  TONE_OPTIONS,
+  LAYOUT_OPTIONS,
+} from '../features/presentation/constant/presentation-options'
+import { Slider } from './ui/slider'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select'
+import { useState } from 'react'
+import { PRESENTATION_TEMPLATES } from '../features/presentation/constant/presentation-template'
+import type { DashboardFormState } from '#/features/presentation/types/dashboard-form-type'
 
 export function DashboardSection() {
+  const [form, setForm] = useState<DashboardFormState>({
+    content: '',
+    slideCount: 8,
+    style: 'minimal',
+    tone: 'formal',
+    layout: 'balanced',
+  })
+  const [slideCount, setSlideCount] = useState<number[]>([10])
+  const templates = PRESENTATION_TEMPLATES
   return (
     <section className="min-h-screen bg-background text-foreground px-6 py-10">
       <div className="mx-auto max-w-7xl space-y-8">
+        {/* Main Heading  */}
+
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
@@ -27,6 +54,7 @@ export function DashboardSection() {
             New Presentation
           </Button>
         </div>
+        {/* TextArea for Prompt  */}
 
         <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
           <div className="rounded-3xl border border-border bg-card/80 p-6 shadow-sm backdrop-blur-xl">
@@ -45,6 +73,13 @@ export function DashboardSection() {
 
             <textarea
               placeholder="Create a modern presentation about AI in education..."
+              value={form.content}
+              onChange={(e) =>
+                setForm((s) => ({
+                  ...s,
+                  content: e.target.value,
+                }))
+              }
               className="min-h-55 w-full resize-none rounded-2xl border border-border bg-background px-5 py-4 text-sm outline-none transition focus:border-primary"
             />
 
@@ -58,8 +93,39 @@ export function DashboardSection() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
-          </div>
 
+            {/* Slides Quantity  */}
+            <div className="pt-10">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">
+                    Number of Slides
+                  </label>
+
+                  <span className="text-sm text-muted-foreground">
+                    {slideCount[0]} slides
+                  </span>
+                </div>
+
+                <Slider
+                  defaultValue={[10]}
+                  max={30}
+                  min={5}
+                  step={1}
+                  value={slideCount}
+                  onValueChange={(value) => {
+                    setSlideCount(value)
+
+                    setForm((s) => ({
+                      ...s,
+                      slideCount: value[0],
+                    }))
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+          {/* Export Section  */}
           <div className="space-y-6">
             <div className="rounded-3xl border border-border bg-card/80 p-6 backdrop-blur-xl">
               <div className="mb-5 flex items-center justify-between">
@@ -86,26 +152,154 @@ export function DashboardSection() {
 
             <div className="rounded-3xl border border-border bg-card/80 p-6 backdrop-blur-xl">
               <div className="mb-5 flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Templates</h3>
+                <div>
+                  <h3 className="text-lg font-semibold">Presentation Settings</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Customize your AI-generated presentation
+                  </p>
+                </div>
+
                 <Presentation className="h-5 w-5 text-muted-foreground" />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                {['Modern', 'Minimal', 'Startup', 'Education'].map(
-                  (template) => (
-                    <button
-                      key={template}
-                      className="rounded-2xl border border-border bg-background px-4 py-5 text-sm font-medium transition hover:border-primary hover:bg-muted"
-                    >
-                      {template}
-                    </button>
-                  ),
-                )}
+              <div className="grid gap-5 md:grid-cols-1">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Slide Style</label>
+
+                  <Select
+                    value={form.style}
+                    onValueChange={(value) =>
+                      setForm((s) => ({
+                        ...s,
+                        style: value as DashboardFormState['style'],
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="h-11 rounded-2xl border-border bg-background">
+                      <SelectValue placeholder="Select style" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {SLIDE_STYLES.map((style) => (
+                        <SelectItem key={style.value} value={style.value}>
+                          {style.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Tone</label>
+
+                  <Select
+                    value={form.tone}
+                    onValueChange={(value) =>
+                      setForm((s) => ({
+                        ...s,
+                        tone: value as DashboardFormState['tone'],
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="h-11 rounded-2xl border-border bg-background">
+                      <SelectValue placeholder="Select tone" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {TONE_OPTIONS.map((tone) => (
+                        <SelectItem key={tone.value} value={tone.value}>
+                          {tone.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Layout</label>
+
+                  <Select
+                    value={form.layout}
+                    onValueChange={(value) =>
+                      setForm((s) => ({
+                        ...s,
+                        layout: value as DashboardFormState['layout'],
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="h-11 rounded-2xl border-border bg-background">
+                      <SelectValue placeholder="Select layout" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {LAYOUT_OPTIONS.map((layout) => (
+                        <SelectItem key={layout.value} value={layout.value}>
+                          {layout.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Presentation Templates  */}
+        <div className="rounded-3xl border border-border bg-card/80 p-6 backdrop-blur-xl">
+          <div className="mt-8">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium">Presentation Templates</h3>
+
+                <p className="text-xs text-muted-foreground">
+                  Start quickly with AI-ready prompts
+                </p>
+              </div>
+
+              <Presentation className="h-4 w-4 text-muted-foreground" />
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {templates.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => {
+                    setForm({
+                      content: template.content,
+
+                      slideCount: template.slides,
+
+                      style: template.style,
+
+                      tone: template.tone,
+
+                      layout: template.layout,
+                    })
+                    setSlideCount([template.slides])
+                  }}
+                  className="group rounded-2xl border border-border bg-background px-4 py-3 text-left transition-all hover:border-primary/50 hover:bg-primary/5"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <FileChartColumn className="h-4 w-4" />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">{template.label}</p>
+
+                      <p className="text-xs text-muted-foreground">
+                        {template.slides} slides
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* Recent Presentations  */}
         <div className="rounded-3xl border border-border bg-card/80 p-6 backdrop-blur-xl">
           <div className="mb-6 flex items-center justify-between">
             <div>
