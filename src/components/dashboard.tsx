@@ -87,10 +87,10 @@ export function DashboardSection() {
             </p>
           </div>
 
-          <Button className="h-11 rounded-2xl px-6">
+          {/* <Button className="h-11 rounded-2xl px-6">
             <Plus className="mr-2 h-4 w-4" />
             New Presentation
-          </Button>
+          </Button> */}
         </div>
         {/* TextArea for Prompt  */}
 
