@@ -41,12 +41,14 @@ export default function Navbar() {
           </div>
         </Link>
         <div className="flex items-center gap-4">
-          {/* <Button
-            variant="outline"
-            className="hidden border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white md:flex"
-          >
-            Dashboard
-          </Button> */}
+          <Link to="/dashboard">
+            <Button
+              variant="outline"
+              className="hidden border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white md:flex"
+            >
+              Dashboard
+            </Button>
+          </Link>
 
           {isPending ? (
             <div className="size-9 rounded-full bg-muted animate-pulse" />

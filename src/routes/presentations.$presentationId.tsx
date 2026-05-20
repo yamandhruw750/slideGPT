@@ -139,7 +139,7 @@ function RouteComponent() {
               size="sm"
               className="rounded-2xl gap-1"
             >
-              <Link to="/">
+              <Link to="/dashboard">
                 <ArrowLeft className="size-4" />
                 Home
               </Link>

@@ -1,7 +1,6 @@
 import {
   ArrowRight,
   FileChartColumn,
-  Plus,
   Presentation,
   WandSparkles,
 } from 'lucide-react'
