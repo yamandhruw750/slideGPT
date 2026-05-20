@@ -13,10 +13,10 @@ const adapter = new PrismaPg(pool)
 // Pass the adapter into the Prisma Client
 export const prisma = new PrismaClient({ adapter })
 
-async function main() {
-  // You can now query your existing tables securely with full type safety
-  const users = await prisma.user.findMany()
-  console.log(users)
-}
+// async function main() {
+//   // You can now query your existing tables securely with full type safety
+//   const users = await prisma.user.findMany()
+//   console.log(users)
+// }
 
-main()
+// main()

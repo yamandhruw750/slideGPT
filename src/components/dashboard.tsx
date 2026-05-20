@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  Download,
   FileChartColumn,
   Plus,
   Presentation,
@@ -23,8 +22,15 @@ import {
 import { useState } from 'react'
 import { PRESENTATION_TEMPLATES } from '../features/presentation/constant/presentation-template'
 import type { DashboardFormState } from '#/features/presentation/types/dashboard-form-type'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { createPresentation } from '#/features/presentation/actions/presentation-mutation'
+import { toast } from 'sonner'
+import { presentationQueryKeys } from '#/features/presentation/hooks/query-keys'
+import { useNavigate } from '@tanstack/react-router'
 
 export function DashboardSection() {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [form, setForm] = useState<DashboardFormState>({
     content: '',
     slideCount: 8,
@@ -34,6 +40,38 @@ export function DashboardSection() {
   })
   const [slideCount, setSlideCount] = useState<number[]>([10])
   const templates = PRESENTATION_TEMPLATES
+
+  const createMut = useMutation({
+    mutationFn: () =>
+      createPresentation({
+        data: {
+          prompt: form.content.trim(),
+          slideCount: form.slideCount,
+          style: form.style,
+          tone: form.tone,
+          layout: form.layout,
+        },
+      }),
+    onSuccess: (presentation) => {
+      toast.success('Presentation Created')
+      queryClient.invalidateQueries({ queryKey: presentationQueryKeys.list() })
+      navigate({
+        to: '/presentations/$presentationId',
+        params: { presentationId: presentation.id },
+      })
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Could not find presentation')
+    },
+  })
+
+  const handleCreate = () => {
+    if (!form.content.trim()) {
+      toast.error('Please enter your content first')
+      return
+    }
+    createMut.mutate()
+  }
   return (
     <section className="min-h-screen bg-background text-foreground px-6 py-10">
       <div className="mx-auto max-w-7xl space-y-8">
@@ -88,46 +126,19 @@ export function DashboardSection() {
                 AI will generate slides, titles, and structure.
               </p>
 
-              <Button className="h-11 rounded-2xl px-6">
+              <Button
+                onClick={handleCreate}
+                disabled={createMut.isPending || !form.content.trim()}
+                className="h-11 rounded-2xl px-6"
+              >
                 Generate PPT
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
-
-            {/* Slides Quantity  */}
-            <div className="pt-10">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">
-                    Number of Slides
-                  </label>
-
-                  <span className="text-sm text-muted-foreground">
-                    {slideCount[0]} slides
-                  </span>
-                </div>
-
-                <Slider
-                  defaultValue={[10]}
-                  max={30}
-                  min={5}
-                  step={1}
-                  value={slideCount}
-                  onValueChange={(value) => {
-                    setSlideCount(value)
-
-                    setForm((s) => ({
-                      ...s,
-                      slideCount: value[0],
-                    }))
-                  }}
-                />
-              </div>
-            </div>
           </div>
           {/* Export Section  */}
-          <div className="space-y-6">
-            <div className="rounded-3xl border border-border bg-card/80 p-6 backdrop-blur-xl">
+          {/* <div className="space-y-6"> */}
+          {/* <div className="rounded-3xl border border-border bg-card/80 p-6 backdrop-blur-xl">
               <div className="mb-5 flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Exports</h3>
                 <Download className="h-5 w-5 text-muted-foreground" />
@@ -148,101 +159,132 @@ export function DashboardSection() {
                   ),
                 )}
               </div>
-            </div>
+            </div> */}
 
-            <div className="rounded-3xl border border-border bg-card/80 p-6 backdrop-blur-xl">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">Presentation Settings</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Customize your AI-generated presentation
-                  </p>
-                </div>
-
-                <Presentation className="h-5 w-5 text-muted-foreground" />
+          {/* Presentation Settings  */}
+          <div className="rounded-3xl border border-border bg-card/80 p-6 backdrop-blur-xl">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Presentation Settings</h3>
+                <p className="text-sm text-muted-foreground">
+                  Customize your AI-generated presentation
+                </p>
               </div>
 
-              <div className="grid gap-5 md:grid-cols-1">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Slide Style</label>
+              <Presentation className="h-5 w-5 text-muted-foreground" />
+            </div>
 
-                  <Select
-                    value={form.style}
-                    onValueChange={(value) =>
-                      setForm((s) => ({
-                        ...s,
-                        style: value as DashboardFormState['style'],
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="h-11 rounded-2xl border-border bg-background">
-                      <SelectValue placeholder="Select style" />
-                    </SelectTrigger>
+            <div className="grid gap-6 md:grid-cols-1">
+              <div className="flex-1 space-y-2">
+                <label className="text-sm font-medium">Slide Style</label>
 
-                    <SelectContent>
-                      {SLIDE_STYLES.map((style) => (
-                        <SelectItem key={style.value} value={style.value}>
-                          {style.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <Select
+                  value={form.style}
+                  onValueChange={(value) =>
+                    setForm((s) => ({
+                      ...s,
+                      style: value as DashboardFormState['style'],
+                    }))
+                  }
+                >
+                  <SelectTrigger className="h-11 rounded-2xl border-border bg-background">
+                    <SelectValue placeholder="Select style" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {SLIDE_STYLES.map((style) => (
+                      <SelectItem key={style.value} value={style.value}>
+                        {style.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tone</label>
+
+                <Select
+                  value={form.tone}
+                  onValueChange={(value) =>
+                    setForm((s) => ({
+                      ...s,
+                      tone: value as DashboardFormState['tone'],
+                    }))
+                  }
+                >
+                  <SelectTrigger className="h-11 rounded-2xl border-border bg-background">
+                    <SelectValue placeholder="Select tone" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {TONE_OPTIONS.map((tone) => (
+                      <SelectItem key={tone.value} value={tone.value}>
+                        {tone.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Layout</label>
+
+                <Select
+                  value={form.layout}
+                  onValueChange={(value) =>
+                    setForm((s) => ({
+                      ...s,
+                      layout: value as DashboardFormState['layout'],
+                    }))
+                  }
+                >
+                  <SelectTrigger className="h-11 rounded-2xl border-border bg-background">
+                    <SelectValue placeholder="Select layout" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {LAYOUT_OPTIONS.map((layout) => (
+                      <SelectItem key={layout.value} value={layout.value}>
+                        {layout.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {/* Slides Quantity  */}
+            <div className="pt-10">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">
+                    Number of Slides
+                  </label>
+
+                  <span className="text-sm text-muted-foreground">
+                    {slideCount[0]} slides
+                  </span>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Tone</label>
+                <Slider
+                  defaultValue={[10]}
+                  max={20}
+                  min={5}
+                  step={1}
+                  value={slideCount}
+                  onValueChange={(value) => {
+                    setSlideCount(value)
 
-                  <Select
-                    value={form.tone}
-                    onValueChange={(value) =>
-                      setForm((s) => ({
-                        ...s,
-                        tone: value as DashboardFormState['tone'],
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="h-11 rounded-2xl border-border bg-background">
-                      <SelectValue placeholder="Select tone" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      {TONE_OPTIONS.map((tone) => (
-                        <SelectItem key={tone.value} value={tone.value}>
-                          {tone.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Layout</label>
-
-                  <Select
-                    value={form.layout}
-                    onValueChange={(value) =>
-                      setForm((s) => ({
-                        ...s,
-                        layout: value as DashboardFormState['layout'],
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="h-11 rounded-2xl border-border bg-background">
-                      <SelectValue placeholder="Select layout" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      {LAYOUT_OPTIONS.map((layout) => (
-                        <SelectItem key={layout.value} value={layout.value}>
-                          {layout.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    setForm((s) => ({
+                      ...s,
+                      slideCount: value[0],
+                    }))
+                  }}
+                />
               </div>
             </div>
           </div>
+          {/* </div> */}
         </div>
 
         {/* Presentation Templates  */}
