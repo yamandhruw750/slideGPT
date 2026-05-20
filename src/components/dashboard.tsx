@@ -22,11 +22,13 @@ import {
 import { useState } from 'react'
 import { PRESENTATION_TEMPLATES } from '../features/presentation/constant/presentation-template'
 import type { DashboardFormState } from '#/features/presentation/types/dashboard-form-type'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createPresentation } from '#/features/presentation/actions/presentation-mutation'
 import { toast } from 'sonner'
 import { presentationQueryKeys } from '#/features/presentation/hooks/query-keys'
 import { useNavigate } from '@tanstack/react-router'
+import { listPresentations } from '#/features/presentation/api/presentation-queries'
+import { PresentationListSection } from '#/features/presentation/components/presentation-list-section'
 
 export function DashboardSection() {
   const queryClient = useQueryClient()
@@ -40,6 +42,11 @@ export function DashboardSection() {
   })
   const [slideCount, setSlideCount] = useState<number[]>([10])
   const templates = PRESENTATION_TEMPLATES
+
+  const { data: presentations = [], isPending: listPending } = useQuery({
+    queryKey: presentationQueryKeys.list(),
+    queryFn: () => listPresentations(),
+  })
 
   const createMut = useMutation({
     mutationFn: () =>
@@ -343,7 +350,7 @@ export function DashboardSection() {
         </div>
         {/* Recent Presentations  */}
         <div className="rounded-3xl border border-border bg-card/80 p-6 backdrop-blur-xl">
-          <div className="mb-6 flex items-center justify-between">
+          {/* <div className="mb-6 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold">Recent Presentations</h2>
               <p className="text-sm text-muted-foreground">
@@ -354,10 +361,14 @@ export function DashboardSection() {
             <Button variant="outline" className="rounded-2xl">
               View All
             </Button>
-          </div>
+          </div> */}
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {[
+            <PresentationListSection
+              presentations={presentations}
+              isPending={listPending}
+            />
+            {/* {[
               'AI in Healthcare',
               'Future of Education',
               'Startup Pitch Deck',
@@ -386,7 +397,7 @@ export function DashboardSection() {
                   </Button>
                 </div>
               </div>
-            ))}
+            ))} */}
           </div>
         </div>
       </div>

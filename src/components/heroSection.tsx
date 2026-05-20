@@ -76,18 +76,18 @@ export default function Header() {
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
 
-          <Button variant="outline" className="h-12 rounded-2xl px-8">
+          {/* <Button variant="outline" className="h-12 rounded-2xl px-8">
             Watch Demo
-          </Button>
+          </Button> */}
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="mt-20 grid gap-4 md:grid-cols-3"
+          className="mt-20 grid gap-4 md:grid-cols-2"
         >
-          {['AI-generated slides', 'Export as PPT', 'Modern templates'].map(
+          {['AI-generated slides', 'Modern templates'].map(
             (item) => (
               <div
                 key={item}

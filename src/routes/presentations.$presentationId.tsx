@@ -4,14 +4,17 @@ import { usePresentationDetail } from '#/features/presentation/hooks/use-present
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import {
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   Download,
+  Maximize,
   Play,
   RefreshCw,
   Save,
   Trash2,
 } from 'lucide-react'
 import { Label } from '#/components/ui/label'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Textarea } from '#/components/ui/textarea'
 import { Slider } from '#/components/ui/slider'
 import {
@@ -38,6 +41,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '#/components/ui/alert-dialog'
+import { SlideCard } from '#/features/presentation/components/slide-card'
+import { SlideshowModal } from '#/features/presentation/components/slideshow-modal'
+import { useFullscreen } from '#/features/presentation/hooks/use-fullscreen'
+import { SlidePreview } from '#/features/presentation/components/slide-preview'
+import { exportToPptx } from '#/features/presentation/utils'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/presentations/$presentationId')({
   component: RouteComponent,
@@ -50,6 +59,10 @@ function RouteComponent() {
   const [showSettings, setShowSettings] = useState(false)
   const [showSlideshow, setShowSlideshow] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+
+  const { isFullscreen, toggleFullscreen } = useFullscreen(
+    'slide-preview-container',
+  )
 
   const {
     query,
@@ -64,6 +77,26 @@ function RouteComponent() {
   } = usePresentationDetail(presentationId, {
     onDeleted: () => navigate({ to: '/' }),
   })
+
+  const handleExportPptx = useCallback(async () => {
+    const data = query.data
+    if (!data) return
+    const slidesToExport = slides
+    if (slidesToExport.length === 0) return
+
+    setIsExporting(true)
+    try {
+      const filename = await exportToPptx({
+        title: data.title,
+        slides: slidesToExport,
+      })
+      toast.success(`Exported as ${filename}`)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Export failed')
+    } finally {
+      setIsExporting(false)
+    }
+  }, [query.data, slides])
 
   if (query.isPending) {
     return (
@@ -127,7 +160,7 @@ function RouteComponent() {
             <div className="rounded-3xl border border-border bg-card/80 p-6 backdrop-blur-xl">
               <div className="flex flex-wrap items-center gap-4">
                 <img
-                  // src={thumb}
+                  src={thumb}
                   alt=""
                   width={56}
                   height={56}
@@ -162,7 +195,7 @@ function RouteComponent() {
                         variant="outline"
                         size="sm"
                         className="rounded-2xl gap-1"
-                        // onClick={handleExportPptx}
+                        onClick={handleExportPptx}
                         disabled={isExporting}
                       >
                         <Download className="size-4" />
@@ -402,10 +435,13 @@ function RouteComponent() {
                 </div>
               </div>
             )}
-            {/* {activeSlide && (
+            {activeSlide && (
               <div className="space-y-3">
                 <div id="slide-preview-container" className="relative group">
-                  <SlidePreview slide={activeSlide} isFullscreen={isFullscreen} />
+                  <SlidePreview
+                    slide={activeSlide}
+                    isFullscreen={isFullscreen}
+                  />
                   <Button
                     variant="secondary"
                     size="icon"
@@ -449,7 +485,7 @@ function RouteComponent() {
                   </Button>
                 </div>
               </div>
-            )} */}
+            )}
             {slides.length === 0 && !isGenerating && (
               <div className="glass rounded-2xl p-12 text-center">
                 <p className="text-muted-foreground mb-4">
