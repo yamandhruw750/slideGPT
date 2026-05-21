@@ -362,7 +362,7 @@ export function DashboardSection() {
             </Button>
           </div> */}
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-1 xl:grid-cols-1">
             <PresentationListSection
               presentations={presentations}
               isPending={listPending}
